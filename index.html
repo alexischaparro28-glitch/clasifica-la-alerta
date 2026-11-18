@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clasifica la alerta</title>
+<style>
+:root{
+  --bg:#eef1f4;--surface:#ffffff;--ink:#16202b;--muted:#5a6b7a;--line:#d4dbe2;
+  --accent:#c17f0e;--accent-ink:#16202b;--good:#276b4a;--good-bg:#e1f0e6;--bad:#a93c2d;--bad-bg:#fae4e0;
+  --font-display:"Barlow Condensed",Impact,"Arial Narrow",sans-serif;
+  --font-body:"Work Sans",-apple-system,Segoe UI,Roboto,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#10161d;--surface:#1a222b;--ink:#e9edf1;--muted:#8c99a6;--line:#2b3540;--accent:#e7a53c;--accent-ink:#10161d;--good:#73cf9d;--good-bg:#1c2b23;--bad:#e38a79;--bad-bg:#2e201d;color-scheme:dark}
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;margin:0 auto;padding:20px 16px 48px;max-width:640px}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;text-wrap:balance;margin:0;text-transform:uppercase;letter-spacing:.02em}
+p{line-height:1.55;margin:0 0 12px}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+header.top{margin-bottom:18px}
+header.top h1{font-size:36px;margin-top:4px;line-height:1.05}
+header.top .sub{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.5}
+nav.routes{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px;margin:18px 0}
+nav.routes button{flex:1;min-width:0;border:none;background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:11.5px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;padding:12px 4px;border-radius:3px;cursor:pointer}
+nav.routes button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+section.panel{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:4px;padding:18px 18px 20px;margin-bottom:16px}
+section.panel h2{font-size:21px;margin-bottom:10px}
+.route-note{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
+ul.plain{margin:0 0 12px;padding-left:20px}
+ul.plain li{margin-bottom:8px;line-height:1.5}
+table.alert-table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0 4px}
+table.alert-table th,table.alert-table td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.alert-table th{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.script-line{display:flex;gap:10px;margin-bottom:10px;align-items:baseline}
+.script-line .tag{font-family:var(--font-mono);font-size:11px;color:var(--accent);min-width:58px;flex:none}
+.copybar{display:flex;justify-content:flex-end;margin-top:10px}
+.copybar button{font-family:var(--font-body);font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px;border-radius:3px;cursor:pointer}
+.practice{margin-top:28px}
+.practice .eyebrow{margin-bottom:4px}
+.scorebar{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 6px;font-size:12.5px;color:var(--muted);font-family:var(--font-mono)}
+.progress{height:4px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:16px}
+.progress>div{height:100%;background:var(--accent);transition:width .3s}
+.card-alert{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px}
+.card-alert .alert-id{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
+.card-alert .alert-text{font-size:16px;line-height:1.5;margin:8px 0 16px}
+.options{display:flex;flex-direction:column;gap:8px}
+.options button{text-align:left;font-family:var(--font-body);font-size:14.5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:12px 14px;border-radius:4px;cursor:pointer;line-height:1.4}
+.options button:disabled{cursor:default}
+.options button.correct{border-color:var(--good);background:var(--good-bg);color:var(--good)}
+.options button.incorrect{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+.feedback{margin-top:14px;padding:12px 14px;border-radius:4px;font-size:13.5px;line-height:1.5}
+.feedback.good{background:var(--good-bg);color:var(--good)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.nextbar{display:flex;justify-content:flex-end;margin-top:14px}
+.nextbar button,.done button{font-family:var(--font-body);font-weight:600;font-size:13.5px;background:var(--accent);color:var(--accent-ink);border:none;padding:11px 16px;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em}
+.nextbar button:disabled{opacity:.4;cursor:default}
+.done{text-align:center;padding:24px 10px}
+.done h3{font-size:20px;margin-bottom:6px}
+.done p{color:var(--muted);font-size:14px}
+.done button{margin-top:12px}
+footer.equiv{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;line-height:1.6}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<header class="top">
+  <div class="eyebrow">Objeto de aprendizaje · Región SCE</div>
+  <h1>Clasifica la alerta</h1>
+  <p class="sub">Capacitación para supervisores de campo sobre alertas de telemática. Elige la ruta que mejor se ajuste a tu conexión: las tres llevan al mismo contenido.</p>
+</header>
+
+<nav class="routes" role="tablist" aria-label="Rutas de acceso equivalentes">
+  <button role="tab" id="tab-texto" aria-selected="true">Texto</button>
+  <button role="tab" id="tab-video" aria-selected="false">Microvideo</button>
+  <button role="tab" id="tab-guia" aria-selected="false">Guía rápida</button>
+</nav>
+
+<section class="panel" id="panel-texto">
+  <h2>Cómo leer una alerta de telemática</h2>
+  <p>Cada vehículo de la flota reporta eventos al sistema de forma automática. Tu trabajo como supervisor no es revisar cada evento, sino decidir en segundos si una alerta requiere una llamada inmediata, una nota en el expediente o ninguna acción.</p>
+  <p>Hay cinco tipos de alertas que verás con más frecuencia:</p>
+  <table class="alert-table">
+    <tr><th>Alerta</th><th>Qué significa</th><th>Acción esperada</th></tr>
+    <tr><td>Exceso de velocidad</td><td>Se superó el límite de velocidad de la vía por más de 10 segundos.</td><td>Llamar si se repite en la misma ruta más de dos veces en un turno.</td></tr>
+    <tr><td>Frenado brusco</td><td>Desaceleración fuerte, posible peligro en la vía.</td><td>Confirmar que el conductor está bien; anotarlo si no responde.</td></tr>
+    <tr><td>Motor encendido sin movimiento</td><td>El vehículo está encendido y detenido por más de 15 minutos.</td><td>Anotarlo en el expediente, salvo que sea una zona de entrega conocida.</td></tr>
+    <tr><td>Desvío de ruta</td><td>El vehículo se aleja más de 1&nbsp;km (unas 0.6 millas) de su ruta asignada.</td><td>Llamar para confirmar el motivo del desvío.</td></tr>
+    <tr><td>Salida de zona autorizada</td><td>El vehículo sale del área autorizada para esa localidad.</td><td>Llamar de inmediato; puede indicar una emergencia o un error de ruta.</td></tr>
+  </table>
+  <p>La pregunta que debes hacerte con cada alerta es siempre la misma: <em>¿esto representa un riesgo para la persona o la carga, o es una variación normal del trabajo del día?</em> Si hay riesgo, llamas. Si no, lo anotas y continúas.</p>
+  <div class="route-note">Ruta de texto: pensada para conexiones lentas o datos limitados. No necesita imágenes ni video para completarse.</div>
+</section>
+
+<section class="panel" id="panel-video" hidden>
+  <h2>Guion del microvideo (menos de 2 minutos)</h2>
+  <p>Esta ruta cubre el mismo contenido en un video corto. Aquí está el guion completo, por si prefieres leerlo o producirlo en tu localidad:</p>
+  <div class="script-line"><span class="tag">0:00</span><span>Un supervisor recibe una notificación en su teléfono mientras camina hacia su camión.</span></div>
+  <div class="script-line"><span class="tag">0:15</span><span>Narración: &ldquo;Cada alerta te hace una sola pregunta: ¿hay riesgo, o es parte de un día normal?&rdquo;</span></div>
+  <div class="script-line"><span class="tag">0:30</span><span>La pantalla muestra las cinco alertas y sus acciones esperadas, una por una, en el mismo orden que la tabla de texto.</span></div>
+  <div class="script-line"><span class="tag">1:15</span><span>Ejemplo real: una salida de zona autorizada durante una entrega en terreno montañoso, y la llamada inmediata del supervisor.</span></div>
+  <div class="script-line"><span class="tag">1:45</span><span>Cierre: &ldquo;Practica con los escenarios de esta página antes de tu próximo turno.&rdquo;</span></div>
+  <div class="route-note">Ruta de video: opcional, para quien prefiera o pueda ver video. No añade contenido más allá de la ruta de texto.</div>
+</section>
+
+<section class="panel" id="panel-guia" hidden>
+  <h2>Referencia rápida de una página</h2>
+  <ul class="plain">
+    <li><strong>Exceso de velocidad</strong>: llamar si se repite 2 o más veces en el turno.</li>
+    <li><strong>Frenado brusco</strong>: confirmar que el conductor está bien; anotarlo si no responde.</li>
+    <li><strong>Motor encendido sin movimiento</strong>: anotarlo, salvo que sea una zona de entrega conocida.</li>
+    <li><strong>Desvío de ruta</strong>: llamar para confirmar el motivo.</li>
+    <li><strong>Salida de zona autorizada</strong>: llamar de inmediato.</li>
+  </ul>
+  <p>Regla general: si hay riesgo para la persona o la carga, llama. Si no, anótalo.</p>
+  <div class="copybar"><button id="copy-guia" type="button">Copiar texto de la guía</button></div>
+  <div class="route-note">Ruta de guía: para consulta sin conexión. Copia el texto y guárdalo donde lo vayas a leer después.</div>
+</section>
+
+<div class="practice">
+  <div class="eyebrow">Práctica</div>
+  <h2>Clasifica cinco alertas reales</h2>
+  <div class="scorebar"><span id="progress-label" aria-live="polite">Alerta 1 de 5</span><span id="score-label">Correctas: 0</span></div>
+  <div class="progress"><div id="progress-fill" style="width:20%"></div></div>
+  <div id="quiz-area"></div>
+</div>
+
+<footer class="equiv">
+  Las tres rutas de acceso son equivalentes, no idénticas: cada una lleva al mismo resultado de aprendizaje por un camino distinto, según la teoría de la equivalencia de Simonson (1999). Elige la que mejor funcione con tu conexión en este momento.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var tabs={
+    texto:{btn:document.getElementById("tab-texto"),panel:document.getElementById("panel-texto")},
+    video:{btn:document.getElementById("tab-video"),panel:document.getElementById("panel-video")},
+    guia:{btn:document.getElementById("tab-guia"),panel:document.getElementById("panel-guia")}
+  };
+  function selectTab(name){
+    Object.keys(tabs).forEach(function(k){
+      var a=k===name;
+      tabs[k].btn.setAttribute("aria-selected",a?"true":"false");
+      tabs[k].panel.hidden=!a;
+    });
+  }
+  Object.keys(tabs).forEach(function(k){tabs[k].btn.addEventListener("click",function(){selectTab(k)})});
+
+  var copyBtn=document.getElementById("copy-guia");
+  copyBtn.addEventListener("click",function(){
+    var text="Guía rápida: Clasifica la alerta\n"+
+      "Exceso de velocidad: llamar si se repite 2 o más veces en el turno.\n"+
+      "Frenado brusco: confirmar que el conductor está bien; anotarlo si no responde.\n"+
+      "Motor encendido sin movimiento: anotarlo, salvo que sea una zona de entrega conocida.\n"+
+      "Desvío de ruta: llamar para confirmar el motivo.\n"+
+      "Salida de zona autorizada: llamar de inmediato.\n"+
+      "Regla general: si hay riesgo para la persona o la carga, llama. Si no, anótalo.";
+    function fb(){copyBtn.textContent="Mantén presionado el texto de arriba para copiarlo";setTimeout(function(){copyBtn.textContent="Copiar texto de la guía"},2500)}
+    try{navigator.clipboard.writeText(text).then(function(){copyBtn.textContent="Copiado";setTimeout(function(){copyBtn.textContent="Copiar texto de la guía"},1800)},fb)}catch(e){fb()}
+  });
+
+  var scenarios=[
+    {id:"SCE-0417",text:"Un camión asignado a la ruta de Laredo se aleja 1.4 millas de su ruta planificada durante 6 minutos y luego regresa a la ruta normal.",options:[
+      {label:"No hacer nada, probablemente fue tráfico.",correct:false,feedback:"Un desvío de más de 1 km (unas 0.6 millas) siempre se confirma con el conductor, aunque el vehículo ya haya vuelto a la ruta. Pudo ser tráfico, pero también una entrega mal dirigida o una emergencia que ya se resolvió sola."},
+      {label:"Llamar al conductor para confirmar el motivo del desvío.",correct:true,feedback:"Correcto. El desvío supera el umbral de 1 km, así que se confirma la causa aunque el vehículo ya haya regresado a la ruta."},
+      {label:"Esperar a ver si ocurre otra vez antes de actuar.",correct:false,feedback:"Un desvío de ruta se confirma la primera vez que ocurre, no cuando se repite. Esperar deja pasar el momento en que la llamada es más útil."}]},
+    {id:"SCE-0522",text:"Un vehículo reporta el motor encendido y detenido por 40 minutos en el estacionamiento del centro de distribución de Dallas, durante el almuerzo registrado del conductor.",options:[
+      {label:"Llamar al conductor de inmediato.",correct:false,feedback:"El lugar es una zona de entrega o parada conocida y el horario coincide con el almuerzo registrado del conductor. Una llamada inmediata aquí interrumpe sin necesidad."},
+      {label:"Anotar la alerta en el expediente sin llamar.",correct:true,feedback:"Correcto. Un motor encendido sin movimiento en una zona conocida, durante un descanso registrado, se anota como rutina y no requiere llamada."},
+      {label:"Ignorar la alerta por completo.",correct:false,feedback:"Ignorarla no es lo mismo que anotarla. Aunque no requiera llamada, toda alerta de motor encendido prolongado queda en el expediente para la revisión de patrones de la semana."}]},
+    {id:"SCE-0603",text:"Un supervisor recibe una alerta de salida de zona autorizada: el vehículo salió del área autorizada para su localidad hace 3 minutos y sigue fuera de ella.",options:[
+      {label:"Llamar al conductor de inmediato.",correct:true,feedback:"Correcto. La salida de zona autorizada es la alerta de mayor prioridad de las cinco: puede indicar una emergencia, un desvío por seguridad o un error de ruta, y se confirma sin demora."},
+      {label:"Esperar 15 minutos a ver si regresa por su cuenta.",correct:false,feedback:"Esperar no es apropiado para esta alerta. La salida de zona autorizada es la más cercana al extremo de alto riesgo y requiere confirmación inmediata."},
+      {label:"Enviar un mensaje de texto y pasar a otras tareas.",correct:false,feedback:"Un mensaje de texto no confirma que el conductor esté bien. Esta alerta requiere una llamada, no un mensaje que podría quedar sin leer."}]},
+    {id:"SCE-0689",text:"Un vehículo registra tres alertas de exceso de velocidad en la misma ruta de Amarillo durante un solo turno de ocho horas.",options:[
+      {label:"Anotar cada alerta por separado sin llamar.",correct:false,feedback:"Tres alertas de exceso de velocidad en la misma ruta y el mismo turno superan el umbral de dos repeticiones. Anotar sin llamar deja pasar un patrón que sí requiere seguimiento."},
+      {label:"Llamar al conductor para hablar del patrón de velocidad.",correct:true,feedback:"Correcto. El umbral de esta alerta es más de dos repeticiones en el mismo turno, y este caso lo cumple. Requiere una llamada, no solo una nota."},
+      {label:"Suspender la ruta del conductor sin hablar con él primero.",correct:false,feedback:"Suspender la ruta es una decisión mayor de lo que esta alerta por sí sola exige, y nunca debe ocurrir antes de hablar con el conductor para entender la causa."}]},
+    {id:"SCE-0741",text:"Un vehículo reporta un frenado brusco en una curva de montaña cerca de San Antonio. El sistema no recibe más señal del conductor durante los siguientes dos minutos.",options:[
+      {label:"Anotar la alerta y revisarla al final del turno.",correct:false,feedback:"Dos minutos sin señal después de un frenado brusco en una zona peligrosa son suficientes para confirmar ahora que el conductor está bien, no al final del turno."},
+      {label:"Llamar de inmediato para confirmar que el conductor está bien.",correct:true,feedback:"Correcto. Un frenado brusco seguido de silencio en una vía peligrosa se confirma sin demora. Si el conductor no responde, la alerta se anota como seguimiento abierto."},
+      {label:"Suponer que fue un hoyo en la vía y continuar sin anotar nada.",correct:false,feedback:"Suponer la causa sin confirmarla es justo el riesgo que esta alerta busca detectar. Primero se confirma; se anota después, no en lugar de confirmar."}]}
+  ];
+
+  var score=0;
+  var quizArea=document.getElementById("quiz-area");
+  var progressLabel=document.getElementById("progress-label");
+  var scoreLabel=document.getElementById("score-label");
+  var progressFill=document.getElementById("progress-fill");
+
+  function renderScenario(idx){
+    var s=scenarios[idx];
+    progressLabel.textContent="Alerta "+(idx+1)+" de "+scenarios.length;
+    scoreLabel.textContent="Correctas: "+score;
+    progressFill.style.width=((idx/scenarios.length)*100)+"%";
+    var wrap=document.createElement("div");wrap.className="card-alert";
+    var idEl=document.createElement("div");idEl.className="alert-id";idEl.textContent="Alerta "+s.id;wrap.appendChild(idEl);
+    var textEl=document.createElement("div");textEl.className="alert-text";textEl.textContent=s.text;wrap.appendChild(textEl);
+    var optsWrap=document.createElement("div");optsWrap.className="options";
+    var feedbackEl=document.createElement("div");feedbackEl.setAttribute("aria-live","polite");
+    var nextBar=document.createElement("div");nextBar.className="nextbar";
+    var nextBtn=document.createElement("button");nextBtn.type="button";nextBtn.disabled=true;
+    nextBtn.textContent=idx===scenarios.length-1?"Ver resultados":"Siguiente alerta";
+    nextBar.appendChild(nextBtn);
+    var answered=false;
+    s.options.forEach(function(opt){
+      var btn=document.createElement("button");btn.type="button";btn.textContent=opt.label;
+      btn.addEventListener("click",function(){
+        if(answered)return;answered=true;
+        Array.prototype.forEach.call(optsWrap.children,function(b){b.disabled=true});
+        btn.classList.add(opt.correct?"correct":"incorrect");
+        if(opt.correct){score++}else{Array.prototype.forEach.call(optsWrap.children,function(b,i){if(s.options[i].correct)b.classList.add("correct")})}
+        feedbackEl.className="feedback "+(opt.correct?"good":"bad");
+        feedbackEl.textContent=(opt.correct?"Respuesta correcta. ":"Respuesta incorrecta. ")+opt.feedback;
+        scoreLabel.textContent="Correctas: "+score;
+        nextBtn.disabled=false;
+      });
+      optsWrap.appendChild(btn);
+    });
+    wrap.appendChild(optsWrap);wrap.appendChild(feedbackEl);wrap.appendChild(nextBar);
+    nextBtn.addEventListener("click",function(){if(idx===scenarios.length-1){renderDone()}else{renderScenario(idx+1)}});
+    quizArea.innerHTML="";quizArea.appendChild(wrap);
+  }
+  function renderDone(){
+    progressLabel.textContent="Terminado";progressFill.style.width="100%";
+    var wrap=document.createElement("div");wrap.className="card-alert done";
+    var h=document.createElement("h3");h.textContent=score+" de "+scenarios.length+" correctas";
+    var p=document.createElement("p");
+    p.textContent=score===scenarios.length?"Clasificaste correctamente las cinco alertas. Estás listo para aplicarlo en tu turno.":"Repasa la retroalimentación de cada alerta antes de tu próximo turno. El objetivo no es memorizar la tabla, sino reconocer el riesgo detrás de cada alerta.";
+    var r=document.createElement("button");r.type="button";r.textContent="Repetir la práctica";
+    r.addEventListener("click",function(){score=0;renderScenario(0)});
+    wrap.appendChild(h);wrap.appendChild(p);wrap.appendChild(r);
+    quizArea.innerHTML="";quizArea.appendChild(wrap);
+  }
+  renderScenario(0);
+})();
+</script>
+</body>
+</html>
